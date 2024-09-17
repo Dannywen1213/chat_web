@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Chatbox Integration</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(to bottom, #E6A6B1, #E6509A); /* 渐变背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 聊天框容器 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 100vw;
+            height: 100vh;
+            background-color: #7a1f1f;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* 聊天记录区域 */
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #E6A6B1, #E6509A); /* 渐变背景 */
+        }
+
+        /* 聊天消息样式 */
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background-color: #d573c1;
+            align-self: flex-end;
+        }
+
+        .message.bot {
+            background-color: #dc5a92;
+            align-self: flex-start;
+            color: white;
+        }
+
+        /* 输入区域 */
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #E6509A;
+        }
+
+        .input-box {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #E6509A;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .send-button {
+            background-color: #000000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .send-button:hover {
+            background-color: #D14085;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <!-- 聊天记录区域 -->
+    <div class="chat-box" id="chat-box">
+        <!-- 示例消息 -->
+        <div class="message bot">Hello! How can I assist you today?</div>
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="input-container">
+        <input type="text" class="input-box" id="user-input" placeholder="Type your message here...">
+        <button class="send-button" id="send-button">Send</button>
+    </div>
+</div>
+
+<script>
+    const apiKey = "sk-proj-e5opMaVpYOZlFZ0hFtQeT3BlbkFJ14dlX3J0QttBaNy8zYnp";
+
+    const model = "gpt-3.5-turbo";
+
+    // 发送消息到ChatGPT并接收回复
+    async function sendMessageToChatGPT(message) {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [{ role: "user", content: message }]
+            })
+        });
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    // 发送消息功能
+    async function sendMessage() {
+        const inputBox = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+
+        // 获取用户输入
+        const userMessage = inputBox.value;
+        if (userMessage.trim() === '') return;
+
+        // 创建用户消息的div
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.classList.add('message', 'user');
+        userMessageDiv.innerText = userMessage;
+        chatBox.appendChild(userMessageDiv);
+
+        // 清空输入框
+        inputBox.value = '';
+
+        // 发送用户消息到ChatGPT并获取回复
+        const botMessage = await sendMessageToChatGPT(userMessage);
+
+        // 创建AI回复的div
+        const botMessageDiv = document.createElement('div');
+        botMessageDiv.classList.add('message', 'bot');
+        botMessageDiv.innerText = botMessage;
+        chatBox.appendChild(botMessageDiv);
+
+        // 自动滚动到底部
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // 点击Send按钮发送消息
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+
+    // 按Enter键发送消息
+    document.getElementById('user-input').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>
